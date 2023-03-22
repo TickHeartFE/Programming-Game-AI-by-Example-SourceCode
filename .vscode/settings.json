@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.cjson": "jsonc",
+        "*.wxs": "javascript",
+        "*.wxss": "css",
+        "*.tcc": "cpp",
+        "memory_resource": "cpp",
+        "optional": "cpp"
+    }
+}

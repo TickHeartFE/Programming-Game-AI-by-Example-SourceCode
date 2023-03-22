@@ -21,7 +21,8 @@ class Smoother
 private:
 
   // this holds the history
-  // holds SampleSize and ZeroValue
+  // holds the heading history
+  // just like the heading buffer
   std::vector<T>  m_History;
 
   int           m_iNextUpdateSlot;
@@ -34,6 +35,7 @@ public:
 
   //to instantiate a Smoother pass it the number of samples you want
   //to use in the smoothing, and an exampe of a 'zero' type
+  // 对于m_History,m_history会以SampleSize数量的ZeroValue去构建
   Smoother(int SampleSize, T ZeroValue):m_History(SampleSize, ZeroValue),
                                         m_ZeroValue(ZeroValue),
                                         m_iNextUpdateSlot(0)
@@ -42,23 +44,28 @@ public:
   //each time you want to get a new average, feed it the most recent value
   //and this method will return an average over the last SampleSize updates
   T Update(const T& MostRecentValue)
-  {  
-    //overwrite the oldest value with the newest
+  {
+    // m_iNextUpdateSlot -> counting number
+
+    // overwrite the oldest value with the newest
+    // overwrite the headingbuffer
     m_History[m_iNextUpdateSlot++] = MostRecentValue;
 
     //make sure m_iNextUpdateSlot wraps around. 
     if (m_iNextUpdateSlot == m_History.size()) m_iNextUpdateSlot = 0;
 
-    //now to calculate the average of the history list
+    // now to calculate the average of the history list
     T sum = m_ZeroValue;
 
     std::vector<T>::iterator it = m_History.begin();
 
-    for (it; it != m_History.end(); ++it)
+    // 在这里计算全部的heading
+    for(it; it != m_History.end(); ++it)
     {
       sum += *it;
     }
 
+    
     return sum / (double)m_History.size();
   }
 };
