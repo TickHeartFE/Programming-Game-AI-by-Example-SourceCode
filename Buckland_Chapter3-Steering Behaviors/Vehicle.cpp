@@ -59,6 +59,7 @@ Vehicle::~Vehicle()
 //------------------------------ Update ----------------------------------
 //
 //  Updates the vehicle's position from a series of steering behaviors
+// 在这里每帧对vehicle进行对应的更新
 //------------------------------------------------------------------------
 void Vehicle::Update(double time_elapsed)
 {    

@@ -827,6 +827,7 @@ Vector2D SteeringBehavior::Wander()
   double JitterThisTimeSlice = m_dWanderJitter * m_pVehicle->TimeElapsed();
 
   //first, add a small random vector to the target's position
+  // RandomClamped返回[-1, 1]
   m_vWanderTarget += Vector2D(RandomClamped() * JitterThisTimeSlice,
                               RandomClamped() * JitterThisTimeSlice);
 
@@ -841,6 +842,7 @@ Vector2D SteeringBehavior::Wander()
   Vector2D target = m_vWanderTarget + Vector2D(m_dWanderDistance, 0);
 
   //project the target into world space
+  // 然后把目标位置转化到世界空间坐标下
   Vector2D Target = PointToWorldSpace(target,
                                        m_pVehicle->Heading(),
                                        m_pVehicle->Side(), 

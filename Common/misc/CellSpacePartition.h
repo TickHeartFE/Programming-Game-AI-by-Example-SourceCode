@@ -31,10 +31,10 @@
 //------------------------------------------------------------------------
 //
 //  defines a cell containing a list of pointers to entities
+//  Cell里面拥有的是list<entity>和InvertedAABBoex2D
 //------------------------------------------------------------------------
 template <class entity>
-struct Cell
-{
+struct Cell {
   //all the entities inhabiting this cell
   std::list<entity>    Members;
 
@@ -43,8 +43,7 @@ struct Cell
   InvertedAABBox2D     BBox;
 
   Cell(Vector2D topleft,
-       Vector2D botright):BBox(InvertedAABBox2D(topleft, botright))
-  {}
+       Vector2D botright):BBox(InvertedAABBox2D(topleft, botright)) {}
 };
 
 /////////// //////////////////////////////////////////////////////////////////
@@ -52,8 +51,7 @@ struct Cell
 ///////////////////////////////////////////////////////////////////////////////
 
 template <class entity>
-class CellSpacePartition
-{
+class CellSpacePartition {
 private:
 
   //the required amount of cells in the space
@@ -103,14 +101,14 @@ public:
   inline void CalculateNeighbors(Vector2D TargetPos, double QueryRadius);
 
   //returns a reference to the entity at the front of the neighbor vector
-  inline entity& begin(){m_curNeighbor = m_Neighbors.begin(); return *m_curNeighbor;}
+  inline entity& begin() { m_curNeighbor = m_Neighbors.begin(); return *m_curNeighbor; }
 
   //this returns the next entity in the neighbor vector
-  inline entity& next(){++m_curNeighbor; return *m_curNeighbor;}
+  inline entity& next() { ++m_curNeighbor; return *m_curNeighbor; }
 
   //returns true if the end of the vector is found (a zero value marks the end)
-  inline bool   end(){return (m_curNeighbor == m_Neighbors.end()) || (*m_curNeighbor == 0);}   
-   
+  inline bool   end() { return (m_curNeighbor == m_Neighbors.end()) || (*m_curNeighbor == 0); }
+
   //empties the cells of entities
   void        EmptyCells();
 
@@ -128,26 +126,23 @@ CellSpacePartition<entity>::CellSpacePartition(double  width,        //width of 
                                                int    cellsX,       //number of divisions horizontally
                                                int    cellsY,       //and vertically
                                                int    MaxEntitys):  //maximum number of entities to partition
-                  m_dSpaceWidth(width),
-                  m_dSpaceHeight(height),
-                  m_iNumCellsX(cellsX),
-                  m_iNumCellsY(cellsY),
-                  m_Neighbors(MaxEntitys, entity())
-{
+  m_dSpaceWidth(width),
+  m_dSpaceHeight(height),
+  m_iNumCellsX(cellsX),
+  m_iNumCellsY(cellsY),
+  m_Neighbors(MaxEntitys, entity()) {
   //calculate bounds of each cell
-  m_dCellSizeX = width  / cellsX;
+  m_dCellSizeX = width / cellsX;
   m_dCellSizeY = height / cellsY;
 
-  
+
   //create the cells
-  for (int y=0; y<m_iNumCellsY; ++y)
-  {
-    for (int x=0; x<m_iNumCellsX; ++x)
-    {
-      double left  = x * m_dCellSizeX;
+  for(int y = 0; y < m_iNumCellsY; ++y) {
+    for(int x = 0; x < m_iNumCellsX; ++x) {
+      double left = x * m_dCellSizeX;
       double right = left + m_dCellSizeX;
-      double top   = y * m_dCellSizeY;
-      double bot   = top + m_dCellSizeY;
+      double top = y * m_dCellSizeY;
+      double bot = top + m_dCellSizeY;
 
       m_Cells.push_back(Cell<entity>(Vector2D(left, top), Vector2D(right, bot)));
     }
@@ -164,39 +159,36 @@ CellSpacePartition<entity>::CellSpacePartition(double  width,        //width of 
 //------------------------------------------------------------------------
 template<class entity>
 void CellSpacePartition<entity>::CalculateNeighbors(Vector2D TargetPos,
-                                                    double   QueryRadius)
-{
+                                                    double   QueryRadius) {
   //create an iterator and set it to the beginning of the neighbor vector
   std::vector<entity>::iterator curNbor = m_Neighbors.begin();
-  
+
   //create the query box that is the bounding box of the target's query
   //area
+  // 这里创建了一个方形的查询盒子
   InvertedAABBox2D QueryBox(TargetPos - Vector2D(QueryRadius, QueryRadius),
                             TargetPos + Vector2D(QueryRadius, QueryRadius));
 
   //iterate through each cell and test to see if its bounding box overlaps
   //with the query box. If it does and it also contains entities then
   //make further proximity tests.
-  std::vector<Cell<entity> >::iterator curCell; 
-  for (curCell=m_Cells.begin(); curCell!=m_Cells.end(); ++curCell)
-  {
+  std::vector<Cell<entity>>::iterator curCell;
+  // 这里遍历所有的cellBox
+  for(curCell = m_Cells.begin(); curCell != m_Cells.end(); ++curCell) {
     //test to see if this cell contains members and if it overlaps the
     //query box
-    if (curCell->BBox.isOverlappedWith(QueryBox) &&
-       !curCell->Members.empty())
-    {
+    if(curCell->BBox.isOverlappedWith(QueryBox) &&
+       !curCell->Members.empty()) {
       //add any entities found within query radius to the neighbor list
       std::list<entity>::iterator it = curCell->Members.begin();
-      for (it; it!=curCell->Members.end(); ++it)
-      {     
-        if (Vec2DDistanceSq((*it)->Pos(), TargetPos) <
-            QueryRadius*QueryRadius)
-        {
+      for(it; it != curCell->Members.end(); ++it) {
+        if(Vec2DDistanceSq((*it)->Pos(), TargetPos) <
+            QueryRadius * QueryRadius) {
           *curNbor++ = *it;
         }
-      }    
+      }
     }
-  }//next cell
+  }//next cell, to check the all cell of the wall, skip many time to spend
 
   //mark the end of the list with a zero.
   *curNbor = 0;
@@ -208,12 +200,10 @@ void CellSpacePartition<entity>::CalculateNeighbors(Vector2D TargetPos,
 //  clears the cells of all entities
 //------------------------------------------------------------------------
 template<class entity>
-void CellSpacePartition<entity>::EmptyCells()
-{
+void CellSpacePartition<entity>::EmptyCells() {
   std::vector<Cell<entity> >::iterator it = m_Cells.begin();
 
-  for (it; it!=m_Cells.end(); ++it)
-  {
+  for(it; it != m_Cells.end(); ++it) {
     it->Members.clear();
   }
 }
@@ -224,14 +214,16 @@ void CellSpacePartition<entity>::EmptyCells()
 //  method calculates an index into its appropriate cell
 //------------------------------------------------------------------------
 template<class entity>
-inline int CellSpacePartition<entity>::PositionToIndex(const Vector2D& pos)const
-{
-  int idx = (int)(m_iNumCellsX * pos.x / m_dSpaceWidth) + 
-            ((int)((m_iNumCellsY) * pos.y / m_dSpaceHeight) * m_iNumCellsX);
+inline int CellSpacePartition<entity>::PositionToIndex(const Vector2D& pos)const {
+  // find the idx
+  int idx = (int)(m_iNumCellsX * pos.x / m_dSpaceWidth) +
+    ((int)((m_iNumCellsY)*pos.y / m_dSpaceHeight) * m_iNumCellsX);
 
   //if the entity's position is equal to vector2d(m_dSpaceWidth, m_dSpaceHeight)
   //then the index will overshoot. We need to check for this and adjust
-  if (idx > m_Cells.size()-1) idx = m_Cells.size()-1;
+
+  // 这里做一个规约
+  if(idx > m_Cells.size() - 1) idx = m_Cells.size() - 1;
 
   return idx;
 }
@@ -241,13 +233,12 @@ inline int CellSpacePartition<entity>::PositionToIndex(const Vector2D& pos)const
 //  Used to add the entitys to the data structure
 //------------------------------------------------------------------------
 template<class entity>
-inline void CellSpacePartition<entity>::AddEntity(const entity& ent)
-{ 
-  assert (ent);
+inline void CellSpacePartition<entity>::AddEntity(const entity& ent) {
+  assert(ent);
 
   int sz = m_Cells.size();
   int idx = PositionToIndex(ent->Pos());
-  
+
   m_Cells[idx].Members.push_back(ent);
 }
 
@@ -257,15 +248,14 @@ inline void CellSpacePartition<entity>::AddEntity(const entity& ent)
 //  is updated accordingly
 //------------------------------------------------------------------------
 template<class entity>
-inline void CellSpacePartition<entity>::UpdateEntity(const entity&  ent,
-                                                     Vector2D       OldPos)
-{
+inline void CellSpacePartition<entity>::UpdateEntity(const entity& ent,
+                                                     Vector2D       OldPos) {
   //if the index for the old pos and the new pos are not equal then
   //the entity has moved to another cell.
   int OldIdx = PositionToIndex(OldPos);
   int NewIdx = PositionToIndex(ent->Pos());
 
-  if (NewIdx == OldIdx) return;
+  if(NewIdx == OldIdx) return;
 
   //the entity has moved into another cell so delete from current cell
   //and add to new one
@@ -276,11 +266,9 @@ inline void CellSpacePartition<entity>::UpdateEntity(const entity&  ent,
 //-------------------------- RenderCells -----------------------------------
 //--------------------------------------------------------------------------
 template<class entity>
-inline void CellSpacePartition<entity>::RenderCells()const
-{
+inline void CellSpacePartition<entity>::RenderCells()const {
   std::vector<Cell<entity> >::const_iterator curCell;
-  for (curCell=m_Cells.begin(); curCell!=m_Cells.end(); ++curCell)
-  {
+  for(curCell = m_Cells.begin(); curCell != m_Cells.end(); ++curCell) {
     curCell->BBox.Render(false);
   }
 }

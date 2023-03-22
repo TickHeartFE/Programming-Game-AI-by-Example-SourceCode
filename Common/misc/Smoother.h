@@ -20,7 +20,8 @@ class Smoother
 {
 private:
 
-  //this holds the history
+  // this holds the history
+  // holds SampleSize and ZeroValue
   std::vector<T>  m_History;
 
   int           m_iNextUpdateSlot;

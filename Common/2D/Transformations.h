@@ -87,6 +87,7 @@ inline std::vector<Vector2D> WorldTransform(std::vector<Vector2D> &points,
 //--------------------- PointToWorldSpace --------------------------------
 //
 //  Transforms a point from the agent's local space into world space
+// 将一个点从agent的坐标系转换到世界坐标系中
 //------------------------------------------------------------------------
 inline Vector2D PointToWorldSpace(const Vector2D &point,
                                     const Vector2D &AgentHeading,

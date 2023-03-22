@@ -8,6 +8,7 @@
 //
 //  Desc:   v simple inverted (y increases down screen) axis aligned bounding
 //          box class
+//          简单y倒置的轴对齐的边界框类
 //-----------------------------------------------------------------------------
 
 #include "2d/Vector2D.h"
@@ -16,10 +17,12 @@
 class InvertedAABBox2D
 {
 private:
-  
-  Vector2D  m_vTopLeft;
-  Vector2D  m_vBottomRight;
 
+  // 框类的tl, 即为左上角类
+  Vector2D  m_vTopLeft;
+  // 框类的br, 即为右下角类
+  Vector2D  m_vBottomRight;
+  // 框类的中心点, 即为(tr + br) / 2.0 -> center
   Vector2D  m_vCenter;
   
 public:
@@ -33,6 +36,7 @@ public:
   //returns true if the bbox described by other intersects with this one
   bool isOverlappedWith(const InvertedAABBox2D& other)const
   {
+    // 先把所有可能触碰到的情况标出来，然后再取一个!
     return !((other.Top() > this->Bottom()) ||
            (other.Bottom() < this->Top()) ||
            (other.Left() > this->Right()) ||
