@@ -1059,6 +1059,7 @@ Vector2D SteeringBehavior::Cohesion(const vector<Vehicle*>& neighbors) {
 // USES SPACIAL PARTITIONING
 // PARTITIONING New Tech
 // 对其使用空间分割进行优化
+// new : we find the neighbors by m_pVehicle->World()->CellSpace()->begin to ....->end()
 //------------------------------------------------------------------------
 Vector2D SteeringBehavior::SeparationPlus(const vector<Vehicle*>& neighbors) {
   Vector2D SteeringForce;
@@ -1272,7 +1273,7 @@ Vector2D SteeringBehavior::FollowPath() {
   if(!m_pPath->Finished()) {
     return Seek(m_pPath->CurrentWaypoint());
   }
-
+  
   else {
     return Arrive(m_pPath->CurrentWaypoint(), normal);
   }
@@ -1282,10 +1283,13 @@ Vector2D SteeringBehavior::FollowPath() {
 //
 //  Produces a steering force that keeps a vehicle at a specified offset
 //  from a leader vehicle
+//  保持一定偏移的追逐
+//  offset pursuit for the leader car or plane
 //------------------------------------------------------------------------
 Vector2D SteeringBehavior::OffsetPursuit(const Vehicle* leader,
                                           const Vector2D offset) {
   //calculate the offset's position in world space
+  // 计算世界空间中偏移的位置
   Vector2D WorldOffsetPos = PointToWorldSpace(offset,
                                                   leader->Heading(),
                                                   leader->Side(),
@@ -1293,9 +1297,12 @@ Vector2D SteeringBehavior::OffsetPursuit(const Vehicle* leader,
 
   Vector2D ToOffset = WorldOffsetPos - m_pVehicle->Pos();
 
-  //the lookahead time is propotional to the distance between the leader
-  //and the pursuer; and is inversely proportional to the sum of both
+  //the lookahead time is propotional 正比 to the distance between the leader
+  //and the pursuer; and is inversely proportional 反比 to the sum of both
   //agent's velocities
+
+  // 预期的时间正比于领队和追逐者的距离
+  // 反比于两个智能体速度之和
   double LookAheadTime = ToOffset.Length() /
     (m_pVehicle->MaxSpeed() + leader->Speed());
 

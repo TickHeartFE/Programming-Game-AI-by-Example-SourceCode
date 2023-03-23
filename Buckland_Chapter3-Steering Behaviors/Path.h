@@ -49,10 +49,12 @@ public:
 
 
   //returns the current waypoint
-  Vector2D    CurrentWaypoint()const{assert(curWaypoint != NULL); return *curWaypoint;}
+  // 返回当前的寻路点
+  Vector2D    CurrentWaypoint()const { assert(curWaypoint != NULL); return *curWaypoint; }
 
   //returns true if the end of the list has been reached
-  bool        Finished(){return !(curWaypoint != m_WayPoints.end());}
+  // 返回是否已经结束
+  bool        Finished() { return !(curWaypoint != m_WayPoints.end()); }
   
   //moves the iterator on to the next waypoint in the list
   inline void SetNextWaypoint();
@@ -90,6 +92,7 @@ public:
 
 //-------------------- Methods -------------------------------------------
 
+// set the path to next point
 inline void Path::SetNextWaypoint()
 {
   assert (m_WayPoints.size() > 0);
@@ -98,7 +101,8 @@ inline void Path::SetNextWaypoint()
   {
     if (m_bLooped)
     {
-      curWaypoint = m_WayPoints.begin(); 
+      // if set the loop, if set the loop, then set the curWaypoint to begin
+      curWaypoint = m_WayPoints.begin();
     }
   }
 }  
