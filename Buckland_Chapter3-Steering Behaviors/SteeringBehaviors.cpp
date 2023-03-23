@@ -1211,6 +1211,8 @@ Vector2D SteeringBehavior::Hide(const Vehicle* hunter,
     //spot to the agent
     double dist = Vec2DDistanceSq(HidingSpot, m_pVehicle->Pos());
 
+    // if dist < DistToClosest
+    // find the clost sbstacles
     if(dist < DistToClosest) {
       DistToClosest = dist;
 
@@ -1223,12 +1225,14 @@ Vector2D SteeringBehavior::Hide(const Vehicle* hunter,
 
   }//end while
 
-  //if no suitable obstacles found then Evade the hunter
+  // if no suitable obstacles found then Evade the hunter
+  // if no suitable obstacles to hide, just Evade the hunter
   if(DistToClosest == MaxFloat) {
     return Evade(hunter);
   }
 
-  //else use Arrive on the hiding spot
+  // else use Arrive on the hiding spot
+  // to Arrive fast to BestHidingSpot
   return Arrive(BestHidingSpot, fast);
 }
 
@@ -1273,7 +1277,7 @@ Vector2D SteeringBehavior::FollowPath() {
   if(!m_pPath->Finished()) {
     return Seek(m_pPath->CurrentWaypoint());
   }
-  
+
   else {
     return Arrive(m_pPath->CurrentWaypoint(), normal);
   }
