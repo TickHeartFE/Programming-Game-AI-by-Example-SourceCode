@@ -62,10 +62,12 @@ public:
 
 
 /////////////////////////////////////////////////////////////////////////
-
+// every tick should use Scored to check if the ball is goal
 bool Goal::Scored(const SoccerBall*const ball)
 {
-  if (LineIntersection2D(ball->Pos(), ball->OldPos(), m_vLeftPost, m_vRightPost))
+  // check if the ball pass the door line
+  // of the Ball old pos -> now pos will cross the door line it will go
+  if(LineIntersection2D(ball->Pos(), ball->OldPos(), m_vLeftPost, m_vRightPost))
   {
     ++m_iNumGoalsScored;
 

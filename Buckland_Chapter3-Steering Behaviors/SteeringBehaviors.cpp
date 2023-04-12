@@ -1232,7 +1232,7 @@ Vector2D SteeringBehavior::Hide(const Vehicle* hunter,
   }
 
   // else use Arrive on the hiding spot
-  // to Arrive fast to BestHidingSpot
+  // to Arrive fast to BestHidingSpot, fast Arrive
   return Arrive(BestHidingSpot, fast);
 }
 

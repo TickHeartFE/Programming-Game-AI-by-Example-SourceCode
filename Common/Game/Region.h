@@ -6,6 +6,7 @@
 //
 //  Desc:   Defines a rectangular region. A region has an identifying
 //          number, and four corners.
+//  Desc: 描述了
 //
 //  Author: Mat Buckland (fup@ai-junkie.com)
 //

@@ -28,24 +28,28 @@ class SoccerBall;
 class SoccerTeam;
 class PlayerBase;
 
-
-class SoccerPitch
-{ 
+// SoccerPitch对象拥有SoccerTeam、SoccerBall和Goal对象的实例
+class SoccerPitch {
 public:
 
-  SoccerBall*          m_pBall;
+  // one soccerball
+  SoccerBall* m_pBall;
 
-  SoccerTeam*          m_pRedTeam;
-  SoccerTeam*          m_pBlueTeam;
+  // red team and blue team
+  SoccerTeam* m_pRedTeam;
+  SoccerTeam* m_pBlueTeam;
 
-  Goal*                m_pRedGoal;
-  Goal*                m_pBlueGoal;
-   
+  // 红蓝双方的进球判定和进球数
+  Goal* m_pRedGoal;
+  Goal* m_pBlueGoal;
+
   //container for the boundary walls
+  // 简单足球环境的场地边界使用Wall2D表示的。wall is create by a line and the normal line of wall
+  // this can be use for wall avoidance
   std::vector<Wall2D>  m_vecWalls;
 
   //defines the dimensions of the playing area
-  Region*              m_pPlayingArea;
+  Region* m_pPlayingArea;
 
   //the playing field is broken up into regions that the team
   //can make use of to implement strategies.
@@ -63,8 +67,8 @@ public:
 
   //local copy of client window dimensions
   int                  m_cxClient,
-                       m_cyClient;  
-  
+    m_cyClient;
+
   //this instantiates the regions the players utilize to  position
   //themselves
   void CreateRegions(double width, double height);
@@ -80,29 +84,28 @@ public:
 
   bool  Render();
 
-  void  TogglePause(){m_bPaused = !m_bPaused;}
-  bool  Paused()const{return m_bPaused;}
+  void  TogglePause() { m_bPaused = !m_bPaused; }
+  bool  Paused()const { return m_bPaused; }
 
-  int   cxClient()const{return m_cxClient;}
-  int   cyClient()const{return m_cyClient;}
+  int   cxClient()const { return m_cxClient; }
+  int   cyClient()const { return m_cyClient; }
 
-  bool  GoalKeeperHasBall()const{return m_bGoalKeeperHasBall;}
-  void  SetGoalKeeperHasBall(bool b){m_bGoalKeeperHasBall = b;}
+  bool  GoalKeeperHasBall()const { return m_bGoalKeeperHasBall; }
+  void  SetGoalKeeperHasBall(bool b) { m_bGoalKeeperHasBall = b; }
 
-  const Region*const         PlayingArea()const{return m_pPlayingArea;}
-  const std::vector<Wall2D>& Walls(){return m_vecWalls;}                      
-  SoccerBall*const           Ball()const{return m_pBall;}
+  const Region* const         PlayingArea()const { return m_pPlayingArea; }
+  const std::vector<Wall2D>& Walls() { return m_vecWalls; }
+  SoccerBall* const           Ball()const { return m_pBall; }
 
-  const Region* const GetRegionFromIndex(int idx)                                
-  {
-    assert ( (idx > 0) && (idx < m_Regions.size()) );
+  const Region* const GetRegionFromIndex(int idx) {
+    assert((idx > 0) && (idx < m_Regions.size()));
 
     return m_Regions[idx];
   }
 
-  bool  GameOn()const{return m_bGameOn;}
-  void  SetGameOn(){m_bGameOn = true;}
-  void  SetGameOff(){m_bGameOn = false;}
+  bool  GameOn()const { return m_bGameOn; }
+  void  SetGameOn() { m_bGameOn = true; }
+  void  SetGameOff() { m_bGameOn = false; }
 
 };
 

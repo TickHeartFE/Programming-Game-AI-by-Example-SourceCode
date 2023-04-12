@@ -84,8 +84,10 @@ public:
                                       m_Visited(m_Graph.NumNodes(), unvisited),
                                       m_Route(m_Graph.NumNodes(), no_parent_assigned)
 
-  {                                                                         
-    m_bFound = Search(); 
+  {
+    // 这里进行Search并进行返回结果
+    // 构造函数的时候直接进行Search
+    m_bFound = Search();
   }
 
 
@@ -127,6 +129,8 @@ bool Graph_SearchDFS<graph_type>::Search()
     //put it on the tree. (making sure the dummy edge is not placed on the tree)
     if (Next != &Dummy)
     {
+      // 这里存储已经搜索过的边
+      // 对于搜索过程来说是无用的，但是对用户的视觉有效
       m_SpanningTree.push_back(Next);
     }
    
@@ -280,7 +284,9 @@ bool Graph_SearchBFS<graph_type>::Search()
 
     Q.pop();
 
-    //mark the parent of this node
+    // mark the parent of this node
+    // 标记这个节点的父亲
+    // m_Route[Next->To()] = Next->From();
     m_Route[Next->To()] = Next->From();
 
     //put it on the tree. (making sure the dummy edge is not placed on the tree)
@@ -315,7 +321,8 @@ bool Graph_SearchBFS<graph_type>::Search()
     }
   }
 
-  //no path to target
+  // no path to target
+  // BFS没有搜索到最后的终点
   return false;
 }
 

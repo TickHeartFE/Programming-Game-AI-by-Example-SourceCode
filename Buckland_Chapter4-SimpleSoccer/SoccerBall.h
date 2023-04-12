@@ -33,11 +33,12 @@ private:
   const std::vector<Wall2D>& m_PitchBoundary;                                      
 
 
-  
 
 public:
-    //tests to see if the ball has collided with a ball and reflects 
+  //tests to see if the ball has collided with a ball and reflects 
   //the ball's velocity accordingly
+
+  // 测试球是否和墙碰撞，相应地反射球的速度
   void TestCollisionWithWalls(const std::vector<Wall2D>& walls);
 
   SoccerBall(Vector2D           pos,            
@@ -46,12 +47,12 @@ public:
              std::vector<Wall2D>& PitchBoundary):
   
       //set up the base class
-      MovingEntity(pos,
-                  BallSize,
-                  Vector2D(0,0),
+      MovingEntity(pos, // position
+                  BallSize, // Radius
+                  Vector2D(0,0), // velocity
                   -1.0,                //max speed - unused
-                  Vector2D(0,1),
-                  mass,
+                  Vector2D(0,1), // heading
+                  mass, // mass
                   Vector2D(1.0,1.0),  //scale     - unused
                   0,                   //turn rate - unused
                   0),                  //max force - unused
@@ -73,6 +74,9 @@ public:
   //given a kicking force and a distance to traverse defined by start
   //and finish points, this method calculates how long it will take the
   //ball to cover the distance.
+
+  // 给定一个kicking force, 并用一个start 和 finish来定义一个移动距离
+  // 返回球经过这段距离要花多久
   double    TimeToCoverDistance(Vector2D from,
                                Vector2D to,
                                double     force)const;

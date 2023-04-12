@@ -250,12 +250,14 @@ bool SoccerTeam::GetBestPassToReceiver(const PlayerBase* const passer,
   //the maximum distance the receiver can cover in this time
   double InterceptRange = time * receiver->MaxSpeed();
   
-  //Scale the intercept range
+  // Scale the intercept range
+  // 这里缩小对应的截球范围 for safe
   const double ScalingFactor = 0.3;
   InterceptRange *= ScalingFactor;
 
   //now calculate the pass targets which are positioned at the intercepts
   //of the tangents from the ball to the receiver's range circle.
+  //计算在球到接球队员范围圈的切线范围内的传球目标
   Vector2D ip1, ip2;
 
   GetTangentPoints(receiver->Pos(),
@@ -265,7 +267,8 @@ bool SoccerTeam::GetBestPassToReceiver(const PlayerBase* const passer,
                    ip2);
  
   const int NumPassesToTry = 3;
-  Vector2D Passes[NumPassesToTry] = {ip1, receiver->Pos(), ip2};
+  // 这个三个位置保存在Passes数组中, 尝试传球的次数为3
+  Vector2D Passes[NumPassesToTry] = { ip1, receiver->Pos(), ip2 };
   
   
   // this pass is the best found so far if it is:
@@ -386,6 +389,7 @@ bool SoccerTeam::isPassSafeFromAllOpponents(Vector2D                from,
                                             const PlayerBase* const receiver,
                                             double     PassingForce)const
 {
+  // 遍历所有的opp
   std::vector<PlayerBase*>::const_iterator opp = Opponents()->Members().begin();
 
   for (opp; opp != Opponents()->Members().end(); ++opp)

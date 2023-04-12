@@ -5,6 +5,22 @@
         "*.wxss": "css",
         "*.tcc": "cpp",
         "memory_resource": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "iterator": "cpp",
+        "xutility": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "vector": "cpp",
+        "xtree": "cpp",
+        "initializer_list": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "xlocmon": "cpp",
+        "xstring": "cpp",
+        "algorithm": "cpp",
+        "memory": "cpp",
+        "xmemory": "cpp",
+        "queue": "cpp",
+        "xlocnum": "cpp"
     }
 }

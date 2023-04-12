@@ -40,6 +40,7 @@ void SoccerBall::Kick(Vector2D direction, double force)
   Vector2D acceleration = (direction * force) / m_dMass;
 
   //update the velocity
+  // use the acceleration to update the m_vVelocity
   m_vVelocity = acceleration;
 }
 
@@ -86,18 +87,22 @@ double SoccerBall::TimeToCoverDistance(Vector2D A,
   //the player was to make the pass. 
   double speed = force / m_dMass;
 
-  //calculate the velocity at B using the equation
+  //  calculate the velocity at B using the equation
   //
   //  v^2 = u^2 + 2as
   //
+  // 首先使用这个公式 v^2 = u^2 + 2as
 
   //first calculate s (the distance between the two positions)
   double DistanceToCover =  Vec2DDistance(A, B);
 
-  double term = speed*speed + 2.0*DistanceToCover*Prm.Friction;
+  // 注意到, 这里的Friction是摩擦力, 所以Friction < 0
+  double term = speed * speed + 2.0 * DistanceToCover * Prm.Friction;
 
-  //if  (u^2 + 2as) is negative it means the ball cannot reach point B.
-  if (term <= 0.0) return -1.0;
+  // if (u^2 + 2as) is negative it means the ball cannot reach point B.
+  // if (u^2 + 2as) < 0, which means the ball cannot reach point B
+  // 这里就不引入复杂的复数模型体系了
+  if(term <= 0.0) return -1.0;
 
   double v = sqrt(term);
 
@@ -120,6 +125,10 @@ Vector2D SoccerBall::FuturePosition(double time)const
 {
   //using the equation s = ut + 1/2at^2, where s = distance, a = friction
   //u=start velocity
+
+  // 运用经典的牛顿第二定律来预测足球的位置
+  // s = v0t + 1/2at^2
+  // 给一个double time来进行预测足球的位置
 
   //calculate the ut term, which is a vector
   Vector2D ut = m_vVelocity * time;

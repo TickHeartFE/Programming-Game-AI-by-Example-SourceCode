@@ -130,6 +130,7 @@ void FieldPlayer::Update()
 //-------------------- HandleMessage -------------------------------------
 //
 //  routes any messages appropriately
+//  HandleMessage here
 //------------------------------------------------------------------------
 bool FieldPlayer::HandleMessage(const Telegram& msg)
 {

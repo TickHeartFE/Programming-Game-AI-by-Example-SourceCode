@@ -292,7 +292,8 @@ Vector2D SteeringBehaviors::Interpose(const SoccerBall* ball,
                                       Vector2D  target,
                                       double     DistFromTarget)
 {
-  return Arrive(target + Vec2DNormalize(ball->Pos() - target) * 
+  // fist calculate the target, 注意到target是在door line上的, 这里再使用ballPos进行插值
+  return Arrive(target + Vec2DNormalize(ball->Pos() - target) *
                 DistFromTarget, normal);
 }
 
