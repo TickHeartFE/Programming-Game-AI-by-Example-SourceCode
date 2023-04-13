@@ -691,13 +691,14 @@ private:
 
   const graph_type& m_Graph;
 
-  std::vector<double>            m_CostToThisNode;
+  std::vector<double> m_CostToThisNode;
 
   std::vector<const Edge*>  m_SpanningTree;
   std::vector<const Edge*>  m_Fringe;
 
   void Search(const int source) {
-    //create a priority queue
+    // create a priority queue、
+    // use m_CostToThisNode to queue up
     IndexedPriorityQLow<double> pq(m_CostToThisNode, m_Graph.NumNodes());
 
     //put the source node on the queue
@@ -716,7 +717,7 @@ private:
       //now to test the edges attached to this node
       graph_type::ConstEdgeIterator ConstEdgeItr(m_Graph, best);
 
-      for(const Edge* pE = ConstEdgeItr.beg(); !ConstEdgeItr.end(); pE = ConstEdgeItr.nxt()) {
+      for(const Edge* pE = ConstEdgeItr.beg(); !ConstEdgeItr.end(); pE = ConstEdgeItr.next()) {
         double Priority = pE->Cost;
 
         if(m_Fringe[pE->To()] == 0) {
@@ -724,6 +725,7 @@ private:
 
           pq.insert(pE->To());
 
+          // m_Fringe[pE->To()] = pE;
           m_Fringe[pE->To()] = pE;
         }
 
@@ -733,6 +735,7 @@ private:
           pq.ChangePriority(pE->To());
 
           m_Fringe[pE->To()] = pE;
+
         }
       }
     }
@@ -747,6 +750,7 @@ public:
     m_CostToThisNode(G.NumNodes(), -1) {
     if(source < 0) {
       for(int nd = 0; nd < G.NumNodes(); ++nd) {
+        // 如果没有Source Node, 那么就遍历所有的Node进行SpanningTree的生成
         if(m_SpanningTree[nd] == 0) {
           Search(nd);
         }
@@ -758,6 +762,7 @@ public:
     }
   }
 
+  // 这里直接return m_SpanningTree
   std::vector<const Edge*> GetSpanningTree()const { return m_SpanningTree; }
 
 };
