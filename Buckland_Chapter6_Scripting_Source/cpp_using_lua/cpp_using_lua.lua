@@ -1,6 +1,9 @@
 -- lua script to demonstrate global variables
 
---global string and number types
+-- global string and number types
+
+-- global string and number types
+-- 全局的字符串和数字类型
 
 name   = "Spiderman";
 age    = 29;

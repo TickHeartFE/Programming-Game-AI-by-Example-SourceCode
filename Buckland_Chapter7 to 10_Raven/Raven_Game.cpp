@@ -533,6 +533,7 @@ void Raven_Game::ChangeWeaponOfPossessedBot(unsigned int weapon)const
 //------------------------------------------------------------------------------
 bool Raven_Game::isLOSOkay(Vector2D A, Vector2D B)const
 {
+  // 如果没有墙壁阻挡
   return !doWallsObstructLineSegment(A, B, m_pMap->GetWalls());
 }
 

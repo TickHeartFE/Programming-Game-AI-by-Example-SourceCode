@@ -43,24 +43,27 @@ void Raven_SensoryMemory::RemoveBotFromMemory(Raven_Bot* pBot)
 // this updates the record for an individual opponent. Note, there is no need to
 // test if the opponent is within the FOV because that test will be done when the
 // UpdateVision method is called
+// 对于角色声源的MemoryMap的更新，不要考虑FOV
+// 只需要对视觉的更新考虑AI的FOV
 //-----------------------------------------------------------------------------
 void Raven_SensoryMemory::UpdateWithSoundSource(Raven_Bot* pNoiseMaker)
 {
   //make sure the bot being examined is not this bot
   if (m_pOwner != pNoiseMaker)
   {
-    //if the bot is already part of the memory then update its data, else
-    //create a new memory record and add it to the memory
+    // if the bot is already part of the memory then update its data, else
+    // create a new memory record and add it to the memory
     MakeNewRecordIfNotAlreadyPresent(pNoiseMaker);
 
     MemoryRecord& info = m_MemoryMap[pNoiseMaker];
 
-    //test if there is LOS between bots 
-    if (m_pOwner->GetWorld()->isLOSOkay(m_pOwner->Pos(), pNoiseMaker->Pos()))
+    // test if there is LOS between bots 
+    // 测试两者之间没有墙壁的阻挡
+    // 注意到墙壁是可以阻挡视线和听觉
+    if(m_pOwner->GetWorld()->isLOSOkay(m_pOwner->Pos(), pNoiseMaker->Pos()))
     {
       info.bShootable = true;
-      
-     //record the position of the bot
+      // 记录bot的上一个位置
       info.vLastSensedPosition = pNoiseMaker->Pos();
     }
     else
@@ -68,7 +71,7 @@ void Raven_SensoryMemory::UpdateWithSoundSource(Raven_Bot* pNoiseMaker)
       info.bShootable = false;
     }
     
-    //record the time it was sensed
+    // record the time it was sensed
     info.fTimeLastSensed = (double)Clock->GetCurrentTime();
   }
 }
@@ -81,50 +84,67 @@ void Raven_SensoryMemory::UpdateWithSoundSource(Raven_Bot* pNoiseMaker)
 //-----------------------------------------------------------------------------
 void Raven_SensoryMemory::UpdateVision()
 {
-  //for each bot in the world test to see if it is visible to the owner of
-  //this class
+  // for each bot in the world test to see if it is visible to the owner of
+  // this class
+  // 首先获取所有的Bots
   const std::list<Raven_Bot*>& bots = m_pOwner->GetWorld()->GetAllBots();
+
+  // 然后在这里遍历所有Bots
   std::list<Raven_Bot*>::const_iterator curBot;
   for (curBot = bots.begin(); curBot!=bots.end(); ++curBot)
   {
-    //make sure the bot being examined is not this bot
-    if (m_pOwner != *curBot)
+    // make sure the bot being examined is not this bot
+    if(m_pOwner != *curBot)
     {
-      //make sure it is part of the memory map
+      // make sure it is part of the memory map
+      // 保证存在记忆图 
       MakeNewRecordIfNotAlreadyPresent(*curBot);
 
       //get a reference to this bot's data
       MemoryRecord& info = m_MemoryMap[*curBot];
 
-      //test if there is LOS between bots 
-      if (m_pOwner->GetWorld()->isLOSOkay(m_pOwner->Pos(), (*curBot)->Pos()))
+      // test if there is LOS between bots 
+      // 后面更新info的相关消息
+      if(m_pOwner->GetWorld()->isLOSOkay(m_pOwner->Pos(), (*curBot)->Pos()))
       {
         info.bShootable = true;
 
-              //test if the bot is within FOV
+        //test if the bot is within FOV
         if (isSecondInFOVOfFirst(m_pOwner->Pos(),
                                  m_pOwner->Facing(),
                                  (*curBot)->Pos(),
                                   m_pOwner->FieldOfView()))
         {
-          info.fTimeLastSensed     = Clock->GetCurrentTime();
+          // 记录对应的感知时间
+          info.fTimeLastSensed = Clock->GetCurrentTime();
+          // 记录对应的感知位置
           info.vLastSensedPosition = (*curBot)->Pos();
-          info.fTimeLastVisible    = Clock->GetCurrentTime();
+          // 记录对应的看到的时间
+          info.fTimeLastVisible = Clock->GetCurrentTime();
 
-          if (info.bWithinFOV == false)
-          {
-            info.bWithinFOV           = true;
-            info.fTimeBecameVisible    = info.fTimeLastSensed;
-          
+          // // 维护bWithinFOV变量
+          // if(info.bWithinFOV == false)
+          // {
+          //   info.bWithinFOV = true;
+          //   // 记录下首次感知的时间
+          //   info.fTimeBecameVisible = info.fTimeLastSensed;
+          // }
+
+          // 相当于从不可见->可见
+          if(info.bWithinFOV == false) {
+            // info.bWithinFOV = true;
+            // info.fTimeBecameVisible = info.fTimeLastSensed;
+            info.bWithinFOV = true;
+            // 此时记录下从不可见到可见的瞬间时间, 作为BecameVisible
+            info.fTimeBecameVisible = info.fTimeLastSensed;
           }
-        }
 
+        }
         else
         {
           info.bWithinFOV = false;         
         }
       }
-
       else
       {
         info.bShootable = false;
@@ -164,6 +184,7 @@ Raven_SensoryMemory::GetListOfRecentlySensedOpponents()const
 //
 //  returns true if the bot given as a parameter can be shot (ie. its not
 //  obscured by walls)
+//  这里进行查表，然后返回是否可以Shootable
 //-----------------------------------------------------------------------------
 bool Raven_SensoryMemory::isOpponentShootable(Raven_Bot* pOpponent)const
 {
@@ -185,8 +206,12 @@ bool  Raven_SensoryMemory::isOpponentWithinFOV(Raven_Bot* pOpponent)const
 {
   MemoryMap::const_iterator it = m_MemoryMap.find(pOpponent);
  
-  if (it != m_MemoryMap.end())
-  {
+  // if (it != m_MemoryMap.end())
+  // {
+  //   return it->second.bWithinFOV;
+  // }
+
+  if(it != m_MemoryMap.end()) {
     return it->second.bWithinFOV;
   }
 
@@ -245,17 +270,26 @@ double Raven_SensoryMemory::GetTimeOpponentHasBeenOutOfView(Raven_Bot* pOpponent
 //------------------------ GetTimeSinceLastSensed ----------------------
 //
 //  returns the amount of time the given bot has been visible
+//  返回bot被看到的时长
 //-----------------------------------------------------------------------------
 double  Raven_SensoryMemory::GetTimeSinceLastSensed(Raven_Bot* pOpponent)const
 {
-  MemoryMap::const_iterator it = m_MemoryMap.find(pOpponent);
+  // MemoryMap::const_iterator it = m_MemoryMap.find(pOpponent);
  
-  if (it != m_MemoryMap.end() && it->second.bWithinFOV)
+  // if (it != m_MemoryMap.end() && it->second.bWithinFOV)
+  // {
+  //   return Clock->GetCurrentTime() - it->second.fTimeLastSensed;
+  // }
+  // return 0;
+
+  MemoryMap::const_iterator it = m_MemoryMap.find(pOpponent);
+  if(it != m_MemoryMap.end() && it->second.bWithinFOV)
   {
     return Clock->GetCurrentTime() - it->second.fTimeLastSensed;
   }
 
   return 0;
+
 }
 
 //---------------------- RenderBoxesAroundRecentlySensed ----------------------
