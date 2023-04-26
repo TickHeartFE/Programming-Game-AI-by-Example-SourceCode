@@ -36,7 +36,9 @@ public:
   {
     //if the lifetime counter expires set this trigger to be removed from
     //the game
-    if (--m_iLifetime <= 0)
+    // 在update中不断更新消耗的Trigger_LimitedLifeTime
+    // 所以先Update再进行try操作, Update非常可能会去除一些无用的trigger
+    if(--m_iLifetime <= 0)
     {
       SetToBeRemovedFromGame();
     }
