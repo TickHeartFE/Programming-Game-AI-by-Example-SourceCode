@@ -41,19 +41,26 @@ Raven_WeaponSystem::~Raven_WeaponSystem()
 //-----------------------------------------------------------------------------
 void Raven_WeaponSystem::Initialize()
 {
-  //delete any existing weapons
+  // delete any existing weapons
   WeaponMap::iterator curW;
   for (curW = m_WeaponMap.begin(); curW != m_WeaponMap.end(); ++curW)
   {
+    // delete all the Weapon即可
     delete curW->second;
   }
 
   m_WeaponMap.clear();
 
-  //set up the container
+  // set up the container
+  // 初始化武器
+  // m_pCurrentWeapon = new Blaster(m_pOwner);
+
+
   m_pCurrentWeapon = new Blaster(m_pOwner);
 
-  m_WeaponMap[type_blaster]         = m_pCurrentWeapon;
+
+  // 初始化到weaponMap中
+  m_WeaponMap[type_blaster] = m_pCurrentWeapon;
   m_WeaponMap[type_shotgun]         = 0;
   m_WeaponMap[type_rail_gun]        = 0;
   m_WeaponMap[type_rocket_launcher] = 0;
@@ -134,8 +141,9 @@ void  Raven_WeaponSystem::AddWeapon(unsigned int weapon_type)
   //if the bot already holds a weapon of this type, just add its ammo
   Raven_Weapon* present = GetWeaponFromInventory(weapon_type);
 
-  if (present)
+  if(present)
   {
+    // 如果Map中存在的话, 就IncrementRounds, 并delete新创建的武器
     present->IncrementRounds(w->NumRoundsRemaining());
 
     delete w;
@@ -144,6 +152,7 @@ void  Raven_WeaponSystem::AddWeapon(unsigned int weapon_type)
   //if not already holding, add to inventory
   else
   {
+    // 如果不存在的话, 则直接在Map中进行修正
     m_WeaponMap[weapon_type] = w;
   }
 }
@@ -186,24 +195,28 @@ void Raven_WeaponSystem::TakeAimAndShoot()const
     //the position the weapon will be aimed at
     Vector2D AimingPos = m_pOwner->GetTargetBot()->Pos();
     
-    //if the current weapon is not an instant hit type gun the target position
-    //must be adjusted to take into account the predicted movement of the 
-    //target
-    if (GetCurrentWeapon()->GetType() == type_rocket_launcher ||
+    // if the current weapon is not an instant hit type gun the target position
+    // must be adjusted to take into account the predicted movement of the 
+    // target
+    // 这里需要预测敌人的运动, 因为子弹的速度比较慢
+    if(GetCurrentWeapon()->GetType() == type_rocket_launcher ||
         GetCurrentWeapon()->GetType() == type_blaster)
     {
+      // get the predictPos
       AimingPos = PredictFuturePositionOfTarget();
 
-      //if the weapon is aimed correctly, there is line of sight between the
-      //bot and the aiming position and it has been in view for a period longer
-      //than the bot's reaction time, shoot the weapon
+      // if the weapon is aimed correctly, there is line of sight between the
+      // bot and the aiming position and it has been in view for a period longer
+      // than the bot's reaction time, shoot the weapon
       if ( m_pOwner->RotateFacingTowardPosition(AimingPos) &&
            (m_pOwner->GetTargetSys()->GetTimeTargetHasBeenVisible() >
             m_dReactionTime) &&
            m_pOwner->hasLOSto(AimingPos) )
       {
+        // AddNoiseToAim, 添加一点射击偏移, 使得更加真实
         AddNoiseToAim(AimingPos);
 
+        // 最后, GetCurrentWeapon并且朝目标ShootAt
         GetCurrentWeapon()->ShootAt(AimingPos);
       }
     }
@@ -213,7 +226,10 @@ void Raven_WeaponSystem::TakeAimAndShoot()const
     {
       //if the weapon is aimed correctly and it has been in view for a period
       //longer than the bot's reaction time, shoot the weapon
-      if ( m_pOwner->RotateFacingTowardPosition(AimingPos) &&
+      
+      // 不用预测位置, 直接使用
+
+      if(m_pOwner->RotateFacingTowardPosition(AimingPos) &&
            (m_pOwner->GetTargetSys()->GetTimeTargetHasBeenVisible() >
             m_dReactionTime) )
       {
@@ -242,6 +258,7 @@ void Raven_WeaponSystem::AddNoiseToAim(Vector2D& AimingPos)const
 {
   Vector2D toPos = AimingPos - m_pOwner->Pos();
 
+  // 给一个旋转的弧度, 进行随机噪声
   Vec2DRotateAroundOrigin(toPos, RandInRange(-m_dAimAccuracy, m_dAimAccuracy));
 
   AimingPos = toPos + m_pOwner->Pos();
@@ -263,12 +280,19 @@ Vector2D Raven_WeaponSystem::PredictFuturePositionOfTarget()const
   //the lookahead time is proportional to the distance between the enemy
   //and the pursuer; and is inversely proportional to the sum of the
   //agent's velocities
-  double LookAheadTime = ToEnemy.Length() / 
+
+  // 向前预测的时间
+  // double LookAheadTime 
+  // 这个就是向前预测的时间
+  double LookAheadTime = ToEnemy.Length() /
                         (MaxSpeed + m_pOwner->GetTargetBot()->MaxSpeed());
   
-  //return the predicted future position of the enemy
-  return m_pOwner->GetTargetBot()->Pos() + 
-         m_pOwner->GetTargetBot()->Velocity() * LookAheadTime;
+  // return the predicted future position of the enemy
+
+  Vector2D predictedPosition = m_pOwner->GetTargetBot()->Pos() + m_pOwner->GetTargetBot()->Velocity() * LookAheadTime;
+
+  // 在这里返回预测的位置
+  return predictedPosition;
 }
 
 

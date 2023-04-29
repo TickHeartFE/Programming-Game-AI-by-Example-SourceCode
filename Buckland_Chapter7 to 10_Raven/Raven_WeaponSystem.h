@@ -23,7 +23,8 @@ class Raven_WeaponSystem
 {
 private:
   
-  //a map of weapon instances indexed into by type
+  // a map of weapon instances indexed into by type
+  // 这是一个武器映射区域, 从int 映射到Raven_Weapon
   typedef std::map<int, Raven_Weapon*>  WeaponMap;
 
 private:
@@ -47,6 +48,8 @@ private:
   //their opponents 100% of the time. The lower this value the more accurate
   //a bot's aim will be. Recommended values are between 0 and 0.2 (the value
   //represents the max deviation in radians that can be added to each shot).
+  // 该值越低, AI的攻击就越准确, 建议值在0~0.2
+  // 实质就是表示射击弧度的最大偏差的弧度, Add Noise系统会在这个范围内采样偏差准备, 范围越小越准确, 反之越容易偏离目标
   double            m_dAimAccuracy;
 
   //the amount of time a bot will continue aiming at the position of the target

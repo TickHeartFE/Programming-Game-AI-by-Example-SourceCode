@@ -1,3 +1,13 @@
+/*
+ * @Author: GuinGuinSzu guinguinboys@gmail.com
+ * @Date: 2023-03-20 14:31:56
+ * @LastEditors: GuinGuinSzu guinguinboys@gmail.com
+ * @LastEditTime: 2023-04-26 17:46:04
+ * @FilePath: \Programming-Game-AI-by-Example-SourceCode\Common\Messaging\MessageDispatcher.h
+ * @Description: 
+ * 
+ * Copyright (c) 2023 by ${git_name_email}, All Rights Reserved. 
+ */
 #ifndef MESSAGE_DISPATCHER_H
 #define MESSAGE_DISPATCHER_H
 #pragma warning (disable:4786)
@@ -24,7 +34,7 @@ class BaseGameEntity;
 //to make life easier...
 #define Dispatcher MessageDispatcher::Instance()
 
-//to make code easier to read
+// to make code easier to read
 const double SEND_MSG_IMMEDIATELY = 0.0;
 const int    NO_ADDITIONAL_INFO   = 0;
 const int    SENDER_ID_IRRELEVANT = -1;

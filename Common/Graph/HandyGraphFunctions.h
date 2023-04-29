@@ -206,19 +206,21 @@ void WeightNavGraphNodeEdges(graph_type& graph, int node, double weight)
 //
 // creates a lookup table encoding the shortest path info between each node
 // in a graph to every other
+//  为了节省CPU寻找资源, 这里创建一个最短路径查找表, 查两个点的最短路径可以直接从表里面查
 //-----------------------------------------------------------------------------
 template <class graph_type>
 std::vector<std::vector<int> > CreateAllPairsTable(const graph_type& G)
 {
   enum {no_path = -1};
-  
+
+  // 创建一个二维表, 其所有的元素都设置成枚举值no_path即可
   std::vector<int> row(G.NumNodes(), no_path);
-  
-  std::vector<std::vector<int> > ShortestPaths(G.NumNodes(), row);
+  std::vector<std::vector<int>> ShortestPaths(G.NumNodes(), row);
 
   for (int source=0; source<G.NumNodes(); ++source)
   {
-    //calculate the SPT for this node
+    // calculate the SPT for this node
+    // 为当前节点结算最小生成树
     Graph_SearchDijkstra<graph_type> search(G, source);
 
     std::vector<const graph_type::EdgeType*> spt = search.GetSPT();
@@ -227,26 +229,33 @@ std::vector<std::vector<int> > CreateAllPairsTable(const graph_type& G)
     //the shortest paths from each node to this source node
     for (int target = 0; target<G.NumNodes(); ++target)
     {
-      //if the source node is the same as the target just set to target
-      if (source == target)
+      // if the source node is the same as the target just set to target
+      // source和target一致的话, 那么就设置该值为target
+      if(source == target)
       {
+        // ShortestPaths[source][target] = target;
         ShortestPaths[source][target] = target;
       }
-
       else
       {
         int nd = target;
 
         while ((nd != source) && (spt[nd] != 0))
         {
-          ShortestPaths[spt[nd]->From][target]= nd;
+          // ShortestPaths[spt[nd]->From][target]= nd;
+
+          // nd = spt[nd]->From;
+
+          ShortestPaths[spt[nd]->From][target] = nd;
 
           nd = spt[nd]->From;
+
         }
       }
     }//next target node
   }//next source node
 
+  // 最后把记录好的二维表返回
   return ShortestPaths;
 }
 
@@ -259,13 +268,14 @@ std::vector<std::vector<int> > CreateAllPairsTable(const graph_type& G)
 template <class graph_type>
 std::vector<std::vector<double> > CreateAllPairsCostsTable(const graph_type& G)
 {
-  //create a two dimensional vector
+  // create a two dimensional vector
+  // 注意到如果是无向图, cost可以用一维向量来存储
   std::vector<double> row(G.NumNodes(), 0.0);
   std::vector<std::vector<double> > PathCosts(G.NumNodes(), row);
 
   for (int source=0; source<G.NumNodes(); ++source)
   {
-    //do the search
+    // do the search
     Graph_SearchDijkstra<graph_type> search(G, source);
 
     //iterate through every node in the graph and grab the cost to travel to

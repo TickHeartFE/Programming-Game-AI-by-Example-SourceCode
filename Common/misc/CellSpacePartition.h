@@ -32,6 +32,7 @@
 //
 //  defines a cell containing a list of pointers to entities
 //  Cell里面拥有的是list<entity>和InvertedAABBoex2D
+//  stand for one cell
 //------------------------------------------------------------------------
 template <class entity>
 struct Cell {
@@ -54,8 +55,9 @@ template <class entity>
 class CellSpacePartition {
 private:
 
-  //the required amount of cells in the space
-  std::vector<Cell<entity> >               m_Cells;
+  // the required amount of cells in the space
+  // 一个CellSpacePartition中含有的Cells
+  std::vector<Cell<entity>>               m_Cells;
 
   //this is used to store any valid neighbors when an agent searches
   //its neighboring space
@@ -173,7 +175,7 @@ void CellSpacePartition<entity>::CalculateNeighbors(Vector2D TargetPos,
   //with the query box. If it does and it also contains entities then
   //make further proximity tests.
   std::vector<Cell<entity>>::iterator curCell;
-  // 这里遍历所有的cellBox
+  // 这里遍历CellSpacePartition中的所有Cell
   for(curCell = m_Cells.begin(); curCell != m_Cells.end(); ++curCell) {
     //test to see if this cell contains members and if it overlaps the
     //query box
@@ -182,6 +184,7 @@ void CellSpacePartition<entity>::CalculateNeighbors(Vector2D TargetPos,
       //add any entities found within query radius to the neighbor list
       std::list<entity>::iterator it = curCell->Members.begin();
       for(it; it != curCell->Members.end(); ++it) {
+        // 进行剔除后, 再做具体的距离判定
         if(Vec2DDistanceSq((*it)->Pos(), TargetPos) <
             QueryRadius * QueryRadius) {
           *curNbor++ = *it;

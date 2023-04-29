@@ -60,14 +60,22 @@ void Raven_SensoryMemory::UpdateWithSoundSource(Raven_Bot* pNoiseMaker)
     // test if there is LOS between bots 
     // 测试两者之间没有墙壁的阻挡
     // 注意到墙壁是可以阻挡视线和听觉
+    // 这里进行一个墙壁判定
     if(m_pOwner->GetWorld()->isLOSOkay(m_pOwner->Pos(), pNoiseMaker->Pos()))
     {
-      info.bShootable = true;
+      // info.bShootable = true;
       // 记录bot的上一个位置
+      // info.vLastSensedPosition = pNoiseMaker->Pos();
+
+      
+      info.bShootable = true;
+      // 记录下sense的位置
       info.vLastSensedPosition = pNoiseMaker->Pos();
     }
     else
     {
+      // 被墙壁阻挡
+      // info.bShootable = false;
       info.bShootable = false;
     }
     
@@ -261,6 +269,8 @@ double Raven_SensoryMemory::GetTimeOpponentHasBeenOutOfView(Raven_Bot* pOpponent
  
   if (it != m_MemoryMap.end())
   {
+    // 现在的时间 - fTimeLastVisible
+    // 这里计算出在视野外的时间
     return Clock->GetCurrentTime() - it->second.fTimeLastVisible;
   }
 

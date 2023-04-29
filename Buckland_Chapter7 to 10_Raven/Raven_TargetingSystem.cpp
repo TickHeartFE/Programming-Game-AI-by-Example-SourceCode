@@ -10,8 +10,6 @@ Raven_TargetingSystem::Raven_TargetingSystem(Raven_Bot* owner):m_pOwner(owner),
                                                                m_pCurrentTarget(0)
 {}
 
-
-
 //----------------------------- Update ----------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -32,7 +30,8 @@ void Raven_TargetingSystem::Update()
     {
       double dist = Vec2DDistanceSq((*curBot)->Pos(), m_pOwner->Pos());
 
-      if (dist < ClosestDistSoFar)
+      // AI选择一个最近的玩家作为目标
+      if(dist < ClosestDistSoFar)
       {
         ClosestDistSoFar = dist;
         m_pCurrentTarget = *curBot;

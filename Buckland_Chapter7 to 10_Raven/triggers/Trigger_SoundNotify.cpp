@@ -32,9 +32,11 @@ Trigger_SoundNotify::Trigger_SoundNotify(Raven_Bot* source,
 //-----------------------------------------------------------------------------
 void Trigger_SoundNotify::Try(Raven_Bot* pBot)
 {
-  //is this bot within range of this sound
+  // is this bot within range of this sound
+  // 给角色发送Msg_GunshotSound
   if (isTouchingTrigger(pBot->Pos(), pBot->BRadius()))
   {
+    // 这里注意到sender设置为了SENDER_ID_IRRELEVANT, 因为声音传递是不能传递信息的
     Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY,
                             SENDER_ID_IRRELEVANT,
                             pBot->ID(),

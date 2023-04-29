@@ -125,15 +125,16 @@ void Raven_Bot::Update()
   //clicks on an area of the map that necessitates a path planning request.
   m_pBrain->Process();
   
-  //Calculate the steering force and update the bot's velocity and position
+  // Calculate the steering force and update the bot's velocity and position
   UpdateMovement();
 
   //if the bot is under AI control but not scripted
   if (!isPossessed())
   {           
-    //examine all the opponents in the bots sensory memory and select one
-    //to be the current target
-    if (m_pTargetSelectionRegulator->isReady())
+    // examine all the opponents in the bots sensory memory and select one
+    // to be the current target
+    // 首先先updateTargetSys
+    if(m_pTargetSelectionRegulator->isReady())
     {      
       m_pTargSys->Update();
     }
@@ -144,8 +145,9 @@ void Raven_Bot::Update()
        m_pBrain->Arbitrate(); 
     }
 
-    //update the sensory memory with any visual stimulus
-    if (m_pVisionUpdateRegulator->isReady())
+    // update the sensory memory with any visual stimulus
+    // 听觉通过trigger事件来发送, handle Mes
+    if(m_pVisionUpdateRegulator->isReady())
     {
       m_pSensoryMem->UpdateVision();
     }
@@ -159,6 +161,8 @@ void Raven_Bot::Update()
 
     //this method aims the bot's current weapon at the current target
     //and takes a shot if a shot is possible
+
+    // 这里需要每一帧去更新瞄准敌人并射击
     m_pWeaponSys->TakeAimAndShoot();
   }
 }
@@ -217,8 +221,9 @@ bool Raven_Bot::isReadyForTriggerUpdate()const
 //-----------------------------------------------------------------------------
 bool Raven_Bot::HandleMessage(const Telegram& msg)
 {
-  //first see if the current goal accepts the message
-  if (GetBrain()->HandleMessage(msg)) return true;
+  // first see if the current goal accepts the message
+  // 首先转发到brain中进行handle, 比如说Msg_PathReady这里的信息
+  if(GetBrain()->HandleMessage(msg)) return true;
  
   //handle any messages not handles by the goals
   switch(msg.Msg)
@@ -254,7 +259,9 @@ bool Raven_Bot::HandleMessage(const Telegram& msg)
 
   case Msg_GunshotSound:
 
-    //add the source of this sound to the bot's percepts
+    // 收到了响声
+    // add the source of this sound to the bot's percepts
+    // msg.ExtraInfo -> Raven Bot which make the Sound
     GetSensoryMem()->UpdateWithSoundSource((Raven_Bot*)msg.ExtraInfo);
 
     return true;
@@ -262,6 +269,7 @@ bool Raven_Bot::HandleMessage(const Telegram& msg)
   case Msg_UserHasRemovedBot:
     {
 
+    // 注意到m_pSoundSource, 声源以以ExtraInfo的形式存在, 将声源以ExtraInfo的形式发包传递给AI
       Raven_Bot* pRemovedBot = (Raven_Bot*)msg.ExtraInfo;
 
       GetSensoryMem()->RemoveBotFromMemory(pRemovedBot);
@@ -428,7 +436,7 @@ bool Raven_Bot::canWalkTo(Vector2D pos)const
 //given positions without bumping into any walls
 bool Raven_Bot::canWalkBetween(Vector2D from, Vector2D to)const
 {
- return !m_pWorld->isPathObstructed(from, to, BRadius());
+  return !m_pWorld->isPathObstructed(from, to, BRadius());
 }
 
 //--------------------------- canStep Methods ---------------------------------

@@ -9,6 +9,7 @@
 //
 //  Desc:     defines a trigger that only remains in the game for a specified
 //            number of update steps
+//            这个trigger一定时间内会消失, 比如经典的SoundTrigger, 一些区域性的buffTrigger等等
 //
 //-----------------------------------------------------------------------------
 #include "Trigger.h"
@@ -44,7 +45,7 @@ public:
     }
   }
 
-  //to be implemented by child classes
+  // to be implemented by child classes
   virtual void  Try(entity_type*) = 0;
 };
 

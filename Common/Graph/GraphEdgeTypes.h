@@ -110,8 +110,9 @@ protected:
 
   int   m_iFlags;
 
-  //if this edge intersects with an object (such as a door or lift), then
-  //this is that object's ID. 
+  // if this edge intersects with an object (such as a door or lift), then
+  // this is that object's ID. 
+  // 如果这条边和某一个object相交, 比如说一个门, 或者一个电梯, 那么这个int的值就是那个object的值
   int  m_iIDofIntersectingEntity;
 
 public:

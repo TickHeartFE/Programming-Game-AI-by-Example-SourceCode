@@ -52,7 +52,7 @@ void Raven_PathPlanner::GetReadyForNewSearch()
 //---------------------------- GetCostToNode ----------------------------------
 //
 //  returns the cost to travel from the bot's current position to a specific 
- // graph node. This method makes use of the pre-calculated lookup table
+//  graph node. This method makes use of the pre-calculated lookup table
 //-----------------------------------------------------------------------------
 double Raven_PathPlanner::GetCostToNode(unsigned int NodeIdx)const
 {
@@ -119,6 +119,7 @@ double Raven_PathPlanner::GetCostToClosestItem(unsigned int GiverType)const
 //  successfully. The method extracts the path from m_pCurrentSearch, adds
 //  additional edges appropriate to the search type and returns it as a list of
 //  PathEdges.
+//  当Graph_SearchTimeSliced搜索得到结果后再进行调用进行路径的修正
 //-----------------------------------------------------------------------------
 Raven_PathPlanner::Path Raven_PathPlanner::GetPath()
 {
@@ -134,22 +135,25 @@ Raven_PathPlanner::Path Raven_PathPlanner::GetPath()
                             NavGraphEdge::normal));
 
   
-  //if the bot requested a path to a location then an edge leading to the
-  //destination must be added
-  if (m_pCurrentSearch->GetType() == Graph_SearchTimeSliced<EdgeType>::AStar)
+  // if the bot requested a path to a location then an edge leading to the
+  // destination must be added
+  // 如果机器人请求到一个位置的路径, 则必须添加一条通向目的地的边
+  if(m_pCurrentSearch->GetType() == Graph_SearchTimeSliced<EdgeType>::AStar)
   {   
     path.push_back(PathEdge(path.back().Destination(),
                             m_vDestinationPos,
                             NavGraphEdge::normal));
   }
 
-  //smooth paths if required
-  if (UserOptions->m_bSmoothPathsQuick)
+  // smooth paths if required
+  // 粗糙快速平滑, Quick and not Precise smooth here
+  if(UserOptions->m_bSmoothPathsQuick)
   {
     SmoothPathEdgesQuick(path);
   }
-
-  if (UserOptions->m_bSmoothPathsPrecise)
+  // 精细平滑
+  // SmoothPrecise这里精细进行平滑
+  if(UserOptions->m_bSmoothPathsPrecise)
   {
     SmoothPathEdgesPrecise(path);
   }
@@ -163,10 +167,15 @@ Raven_PathPlanner::Path Raven_PathPlanner::GetPath()
 //-----------------------------------------------------------------------------
 void Raven_PathPlanner::SmoothPathEdgesQuick(Path& path)
 {
-  //create a couple of iterators and point them at the front of the path
+  // create a couple of iterators and point them at the front of the path
+  // 创建两个迭代器
+
+  // 先同时指向path.begin()
+  // e1指向的是首边, e2维护e1下一条边
   Path::iterator e1(path.begin()), e2(path.begin());
 
-  //increment e2 so it points to the edge following e1.
+  // increment e2 so it points to the edge following e1.
+  // e2指向的下一条边
   ++e2;
 
   //while e2 is not the last edge in the path, step through the edges checking
@@ -179,12 +188,19 @@ void Raven_PathPlanner::SmoothPathEdgesQuick(Path& path)
     if ( (e2->Behavior() == EdgeType::normal) &&
           m_pOwner->canWalkBetween(e1->Source(), e2->Destination()) )
     {
+      // e1->SetDestination(e2->Destination());
+      // e2 = path.erase(e2);
       e1->SetDestination(e2->Destination());
+      // erase()返回值是指向被删元素的下一元素的指针
+      // 所以这里非常巧妙, 直接使用e2 = path.erase(e2)
+      // const auto _Result = _Where._Ptr->_Next;
+      // list.erase()最后的return为return _Make_iter(_Result);
+      // 所以这里直接e2 = path.erase(e2)
       e2 = path.erase(e2);
     }
-
     else
     {
+      // 向前迭代即可
       e1 = e2;
       ++e2;
     }
@@ -195,6 +211,7 @@ void Raven_PathPlanner::SmoothPathEdgesQuick(Path& path)
 //----------------------- SmoothPathEdgesPrecise ---------------------------------
 //
 //  smooths a path by removing extraneous edges.
+//  这里进行精细地路径微调行为
 //-----------------------------------------------------------------------------
 void Raven_PathPlanner::SmoothPathEdgesPrecise(Path& path)
 {
@@ -217,16 +234,19 @@ void Raven_PathPlanner::SmoothPathEdgesPrecise(Path& path)
     //replaced with a single edge.
     while (e2 != path.end())
     {
-      //check for obstruction, adjust and remove the edges accordingly
+      // check for obstruction, adjust and remove the edges accordingly
       if ( (e2->Behavior() == EdgeType::normal) &&
             m_pOwner->canWalkBetween(e1->Source(), e2->Destination()) )
       {
         e1->SetDestination(e2->Destination());
+        // 具体erase的范围[e1, e2)
+        // 所以这里的e2需要++操作
         e2 = path.erase(++e1, ++e2);
         e1 = e2;
+        // 回到e1即可
         --e1;
       }
-
+      // e2一直向前探测即可until the end即可
       else
       {
         ++e2;
@@ -248,10 +268,13 @@ int Raven_PathPlanner::CycleOnce()const
 {
   assert (m_pCurrentSearch && "<Raven_PathPlanner::CycleOnce>: No search object instantiated");
 
+  // 一次Cycle返回的结果
+  // 这里对m_pCurrentSearch进行一次update
   int result = m_pCurrentSearch->CycleOnce();
 
-  //let the bot know of the failure to find a path
-  if (result == target_not_found)
+  // let the bot know of the failure to find a path
+  // 消息通知并没有找到路径
+  if(result == target_not_found)
   {
      Dispatcher->DispatchMsg(SEND_MSG_IMMEDIATELY,
                              SENDER_ID_IRRELEVANT,
@@ -261,7 +284,7 @@ int Raven_PathPlanner::CycleOnce()const
 
   }
 
-  //let the bot know a path has been found
+  // let the bot know a path has been found
   else if (result == target_found)
   {
     //if the search was for an item type then the final node in the path will
@@ -284,6 +307,8 @@ int Raven_PathPlanner::CycleOnce()const
 //------------------------ GetClosestNodeToPosition ---------------------------
 //
 //  returns the index of the closest visible graph node to the given position
+//  返回离给定位置最近的地图节点
+//  returns the index of the closet visble graph node to the given position
 //-----------------------------------------------------------------------------
 int Raven_PathPlanner::GetClosestNodeToPosition(Vector2D pos)const
 {
@@ -295,7 +320,8 @@ int Raven_PathPlanner::GetClosestNodeToPosition(Vector2D pos)const
   //navigation graph (less dense = bigger values)
   const double range = m_pOwner->GetWorld()->GetMap()->GetCellSpaceNeighborhoodRange();
 
-  //calculate the graph nodes that are neighboring this position
+  // calculate the graph nodes that are neighboring this position
+  // 给定一个range, 给定一个位置, 计算出这个点附近的邻居
   m_pOwner->GetWorld()->GetMap()->GetCellSpace()->CalculateNeighbors(pos, range);
 
   //iterate through the neighbors and sum up all the position vectors
@@ -309,8 +335,9 @@ int Raven_PathPlanner::GetClosestNodeToPosition(Vector2D pos)const
     {
       double dist = Vec2DDistanceSq(pos, pN->Pos());
 
-      //keep a record of the closest so far
-      if (dist < ClosestSoFar)
+      // keep a record of the closest so far
+      // 记录当前的最短距离
+      if(dist < ClosestSoFar)
       {
         ClosestSoFar = dist;
         ClosestNode  = pN->Index();
@@ -350,7 +377,8 @@ bool Raven_PathPlanner::RequestPathToPosition(Vector2D TargetPos)
     return true;
   }
   
-  //find the closest visible node to the bots position
+  // find the closest visible node to the bots position
+  // 找到最近AI的地图节点
   int ClosestNodeToBot = GetClosestNodeToPosition(m_pOwner->Pos());
 
   //remove the destination node from the list and return false if no visible
@@ -366,11 +394,12 @@ bool Raven_PathPlanner::RequestPathToPosition(Vector2D TargetPos)
     return false; 
   }
 
-  #ifdef SHOW_NAVINFO
+#ifdef SHOW_NAVINFO
     debug_con << "Closest node to bot is " << ClosestNodeToBot << "";
 #endif
 
-  //find the closest visible node to the target position
+  // find the closest visible node to the target position
+  // 找到距离目标点最近的地图节点
   int ClosestNodeToTarget = GetClosestNodeToPosition(TargetPos);
   
   //return false if there is a problem locating a visible node from the target.
@@ -386,11 +415,12 @@ bool Raven_PathPlanner::RequestPathToPosition(Vector2D TargetPos)
     return false; 
   }
 
-  #ifdef SHOW_NAVINFO
+#ifdef SHOW_NAVINFO
     debug_con << "Closest node to target is " << ClosestNodeToTarget << "";
 #endif
 
-  //create an instance of a the distributed A* search class
+  // create an instance of a the distributed A* search class
+  // 创建A*搜索算法实例 
   typedef Graph_SearchAStar_TS<Raven_Map::NavGraph, Heuristic_Euclid> AStar;
    
   m_pCurrentSearch = new AStar(m_NavGraph,
@@ -409,6 +439,7 @@ bool Raven_PathPlanner::RequestPathToPosition(Vector2D TargetPos)
 // Given an item type, this method determines the closest reachable graph node
 // to the bot's position and then creates a instance of the time-sliced 
 // Dijkstra's algorithm, which it registers with the search manager
+// 如果搜索一个ItemType而不是一个确定的位置的时候, 这里就用Graph_SearchDijkstras_TS来创建搜索实例
 //
 //-----------------------------------------------------------------------------
 bool Raven_PathPlanner::RequestPathToItem(unsigned int ItemType)
@@ -432,8 +463,9 @@ bool Raven_PathPlanner::RequestPathToItem(unsigned int ItemType)
     return false; 
   }
 
-  //create an instance of the search algorithm
-  typedef FindActiveTrigger<Trigger<Raven_Bot> > t_con; 
+  // create an instance of the search algorithm
+  // 注意到这里创建的是Dijkstras_TS, 使用Dijkstras进行搜索某个Item
+  typedef FindActiveTrigger<Trigger<Raven_Bot>> t_con;
   typedef Graph_SearchDijkstras_TS<Raven_Map::NavGraph, t_con> DijSearch;
   
   m_pCurrentSearch = new DijSearch(m_NavGraph,
@@ -446,6 +478,9 @@ bool Raven_PathPlanner::RequestPathToItem(unsigned int ItemType)
   return true;
 }
 
+
+
+
 //------------------------------ GetNodePosition ------------------------------
 //
 //  used to retrieve the position of a graph node from its index. (takes
@@ -456,7 +491,6 @@ Vector2D Raven_PathPlanner::GetNodePosition(int idx)const
 {
   return m_NavGraph.GetNode(idx).Pos();
 }
-  
  
 
 

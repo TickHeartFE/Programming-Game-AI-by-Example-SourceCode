@@ -290,7 +290,7 @@ bool Raven_Map::LoadMap(const std::string& filename)
     debug_con << filename << " loaded okay" << "";
 #endif
 
-   //calculate the cost lookup table
+  // calculate the cost lookup table
   m_PathCosts = CreateAllPairsCostsTable(*m_pNavGraph);
 
   return true;

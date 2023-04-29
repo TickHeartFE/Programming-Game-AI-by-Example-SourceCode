@@ -9,6 +9,7 @@
 //
 //  Desc:     base class to create a trigger that is capable of respawning
 //            after a period of inactivity
+//            注意到这个类也是需要被具体继承的, 这个trigger会一段时间重新生成, 可以用来设计一些武器，健康果，攻击防御果以及魔法果等等
 //
 //-----------------------------------------------------------------------------
 #include "Trigger.h"

@@ -36,21 +36,25 @@ public:
   
 private:
 
-  //A pointer to the owner of this class
-  Raven_Bot*                          m_pOwner;
+  // A pointer to the owner of this class
+  // 一个指向这个类拥有者的指针
+  Raven_Bot* m_pOwner;
 
-  //a reference to the navgraph
-  const Raven_Map::NavGraph&          m_NavGraph;
+  // a reference to the navgraph
+  // 对导航图的一个本地引用
+  const Raven_Map::NavGraph& m_NavGraph;
 
-  //a pointer to an instance of the current graph search algorithm.
+  // a pointer to an instance of the current graph search algorithm.
+  // 指向当前图形搜索算法的实例的指针
   Graph_SearchTimeSliced<EdgeType>*  m_pCurrentSearch;
   
   //this is the position the bot wishes to plan a path to reach
   Vector2D                            m_vDestinationPos;
 
 
-  //returns the index of the closest visible and unobstructed graph node to
-  //the given position
+  // returns the index of the closest visible and unobstructed graph node to
+  // the given position
+  // 
   int   GetClosestNodeToPosition(Vector2D pos)const;
 
   //smooths a path by removing extraneous edges. (may not remove all

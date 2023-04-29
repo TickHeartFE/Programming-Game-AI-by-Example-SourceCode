@@ -28,7 +28,7 @@
 
 
 //these enums are used as return values from each search update method
-enum {target_found, target_not_found, search_incomplete};
+enum { target_found, target_not_found, search_incomplete };
 
 
 
@@ -37,11 +37,10 @@ enum {target_found, target_not_found, search_incomplete};
 // base class to define a common interface for graph search algorithms
 //-----------------------------------------------------------------------------
 template <class edge_type>
-class Graph_SearchTimeSliced
-{
+class Graph_SearchTimeSliced {
 public:
 
-  enum SearchType{AStar, Dijkstra};
+  enum SearchType { AStar, Dijkstra };
 
 private:
 
@@ -50,30 +49,32 @@ private:
 
 public:
 
-  Graph_SearchTimeSliced(SearchType type):m_SearchType(type){}
+  Graph_SearchTimeSliced(SearchType type):m_SearchType(type) {}
 
-  virtual ~Graph_SearchTimeSliced(){}
+  virtual ~Graph_SearchTimeSliced() {}
 
-  //When called, this method runs the algorithm through one search cycle. The
-  //method returns an enumerated value (target_found, target_not_found,
-  //search_incomplete) indicating the status of the search
-  virtual int                           CycleOnce()=0;
+  // When called, this method runs the algorithm through one search cycle. The
+  // method returns an enumerated value (target_found, target_not_found,
+  // search_incomplete) indicating the status of the search
+  // 当被调用的时候, 此方法会在一个搜索周期内运行算法, 方法返回一个枚举值(target_found, target_not_found, search_incomplete)
+  // 表示这次的搜索返回的状态
+  virtual int                           CycleOnce() = 0;
 
   //returns the vector of edges that the algorithm has examined
-  virtual std::vector<const edge_type*> GetSPT()const=0;
+  virtual std::vector<const edge_type*> GetSPT()const = 0;
 
 
   //returns the total cost to the target
-  virtual double                         GetCostToTarget()const=0;
+  virtual double                         GetCostToTarget()const = 0;
 
   //returns a list of node indexes that comprise the shortest path
   //from the source to the target
-  virtual std::list<int>                GetPathToTarget()const=0;
+  virtual std::list<int>                GetPathToTarget()const = 0;
 
   //returns the path as a list of PathEdges
-  virtual std::list<PathEdge>           GetPathAsPathEdges()const=0;
+  virtual std::list<PathEdge>           GetPathAsPathEdges()const = 0;
 
-  SearchType                            GetType()const{return m_SearchType;}
+  SearchType                            GetType()const { return m_SearchType; }
 };
 
 
@@ -84,20 +85,19 @@ public:
 //  a A* class that enables a search to be completed over multiple update-steps
 //-----------------------------------------------------------------------------
 template <class graph_type, class heuristic>
-class Graph_SearchAStar_TS : public Graph_SearchTimeSliced<typename graph_type::EdgeType>
-{
+class Graph_SearchAStar_TS: public Graph_SearchTimeSliced<typename graph_type::EdgeType> {
 private:
-  
+
   //create typedefs for the node and edge types used by the graph
   typedef typename graph_type::EdgeType Edge;
   typedef typename graph_type::NodeType Node;
 
 private:
 
-  const graph_type&              m_Graph;
+  const graph_type& m_Graph;
 
   //indexed into my node. Contains the 'real' accumulative cost to that node
-  std::vector<double>            m_GCosts; 
+  std::vector<double>            m_GCosts;
 
   //indexed into by node. Contains the cost from adding m_GCosts[n] to
   //the heuristic cost from n to the target node. This is the vector the
@@ -112,31 +112,30 @@ private:
 
   //create an indexed priority queue of nodes. The nodes with the
   //lowest overall F cost (G+H) are positioned at the front.
-  IndexedPriorityQLow<double>*    m_pPQ;
+  IndexedPriorityQLow<double>* m_pPQ;
 
- 
+
 public:
 
   Graph_SearchAStar_TS(const graph_type& G,
                       int                source,
                       int                target):Graph_SearchTimeSliced<Edge>(AStar),
-  
-                                              m_Graph(G),
-                                              m_ShortestPathTree(G.NumNodes()),                              
-                                              m_SearchFrontier(G.NumNodes()),
-                                              m_GCosts(G.NumNodes(), 0.0),
-                                              m_FCosts(G.NumNodes(), 0.0),
-                                              m_iSource(source),
-                                              m_iTarget(target)
-  { 
-     //create the PQ   
-     m_pPQ =new IndexedPriorityQLow<double>(m_FCosts, m_Graph.NumNodes());
 
-    //put the source node on the queue
+    m_Graph(G),
+    m_ShortestPathTree(G.NumNodes()),
+    m_SearchFrontier(G.NumNodes()),
+    m_GCosts(G.NumNodes(), 0.0),
+    m_FCosts(G.NumNodes(), 0.0),
+    m_iSource(source),
+    m_iTarget(target) {
+    //create the PQ   
+    m_pPQ = new IndexedPriorityQLow<double>(m_FCosts, m_Graph.NumNodes());
+
+    // put the source node on the queue
     m_pPQ->insert(m_iSource);
   }
 
-   ~Graph_SearchAStar_TS(){delete m_pPQ;}
+  ~Graph_SearchAStar_TS() { delete m_pPQ; }
 
 
   //When called, this method pops the next node off the PQ and examines all
@@ -145,7 +144,7 @@ public:
   int                      CycleOnce();
 
   //returns the vector of edges that the algorithm has examined
-  std::vector<const Edge*> GetSPT()const{return m_ShortestPathTree;}
+  std::vector<const Edge*> GetSPT()const { return m_ShortestPathTree; }
 
   //returns a vector of node indexes that comprise the shortest path
   //from the source to the target
@@ -155,60 +154,75 @@ public:
   std::list<PathEdge>    GetPathAsPathEdges()const;
 
   //returns the total cost to the target
-  double            GetCostToTarget()const{return m_GCosts[m_iTarget];}
+  double            GetCostToTarget()const { return m_GCosts[m_iTarget]; }
 };
 
 //-----------------------------------------------------------------------------
 template <class graph_type, class heuristic>
-int Graph_SearchAStar_TS<graph_type, heuristic>::CycleOnce()
-{
-  //if the PQ is empty the target has not been found
-  if (m_pPQ->empty())
-  {
+int Graph_SearchAStar_TS<graph_type, heuristic>::CycleOnce() {
+  // if the PQ is empty the target has not been found
+  // PQ空了但是没有搜索到目标, 说明最后目标并没有被找到
+  if(m_pPQ->empty()) {
     return target_not_found;
   }
 
   //get lowest cost node from the queue
   int NextClosestNode = m_pPQ->Pop();
 
-  //put the node on the SPT
+  // put the node on the SPT
   m_ShortestPathTree[NextClosestNode] = m_SearchFrontier[NextClosestNode];
 
-  //if the target has been found exit
-  if (NextClosestNode == m_iTarget)
-  {
+  // if the target has been found exit
+  // 找到了对应的目标
+  if(NextClosestNode == m_iTarget) {
+    // return target_found;
     return target_found;
   }
 
   //now to test all the edges attached to this node
   graph_type::ConstEdgeIterator ConstEdgeItr(m_Graph, NextClosestNode);
-  for (const Edge* pE=ConstEdgeItr.begin();
+  for(const Edge* pE = ConstEdgeItr.begin();
       !ConstEdgeItr.end();
-       pE=ConstEdgeItr.next())
-  {
-    //calculate the heuristic cost from this node to the target (H)                       
-    double HCost = heuristic::Calculate(m_Graph, m_iTarget, pE->To()); 
+       pE = ConstEdgeItr.next()) {
+    // calculate the heuristic cost from this node to the target (H)  
+    // 计算启发式花销
+    double HCost = heuristic::Calculate(m_Graph, m_iTarget, pE->To());
 
-    //calculate the 'real' cost to this node from the source (G)
+    // calculate the 'real' cost to this node from the source (G)
+    // 计算真实花销
     double GCost = m_GCosts[NextClosestNode] + pE->Cost();
 
     //if the node has not been added to the frontier, add it and update
     //the G and F costs
-    if (m_SearchFrontier[pE->To()] == NULL)
-    {
+    if(m_SearchFrontier[pE->To()] == NULL) {
+      // 维护花销
       m_FCosts[pE->To()] = GCost + HCost;
       m_GCosts[pE->To()] = GCost;
 
+      // 往PQ中插入临近的Node
       m_pPQ->insert(pE->To());
 
+      // 把边压入到m_SearchFrontier中
       m_SearchFrontier[pE->To()] = pE;
     }
 
     //if this node is already on the frontier but the cost to get here
     //is cheaper than has been found previously, update the node
     //costs and frontier accordingly.
-    else if ((GCost < m_GCosts[pE->To()]) && (m_ShortestPathTree[pE->To()]==NULL))
-    {
+    // else if ((GCost < m_GCosts[pE->To()]) && (m_ShortestPathTree[pE->To()]==NULL))
+    // {
+    //   m_FCosts[pE->To()] = GCost + HCost;
+    //   m_GCosts[pE->To()] = GCost;
+
+    //   m_pPQ->ChangePriority(pE->To());
+
+    //   m_SearchFrontier[pE->To()] = pE;
+    // }
+
+    // 这里使用GCost来进行更新, 而不是通过FCost来进行比较更新
+    else if((GCost < m_GCosts[pE->To()]) && (m_ShortestPathTree[pE->To()]) == NULL) {
+
+      // 依旧更新维护Fcosts和Gcost
       m_FCosts[pE->To()] = GCost + HCost;
       m_GCosts[pE->To()] = GCost;
 
@@ -216,35 +230,45 @@ int Graph_SearchAStar_TS<graph_type, heuristic>::CycleOnce()
 
       m_SearchFrontier[pE->To()] = pE;
     }
+
   }
-  
+
   //there are still nodes to explore
   return search_incomplete;
 }
 
 //-----------------------------------------------------------------------------
 template <class graph_type, class heuristic>
-std::list<int> 
-Graph_SearchAStar_TS<graph_type, heuristic>::GetPathToTarget()const
-{
+std::list<int>
+Graph_SearchAStar_TS<graph_type, heuristic>::GetPathToTarget()const {
   std::list<int> path;
 
   //just return an empty path if no target or no path found
-  if (m_iTarget < 0)  return path;    
+  if(m_iTarget < 0)  return path;
 
+
+  // 先把目标放进去
   int nd = m_iTarget;
 
   path.push_back(nd);
-    
-  while ((nd != m_iSource) && (m_ShortestPathTree[nd] != 0))
-  {
-    nd = m_ShortestPathTree[nd]->From();
 
+  // while ((nd != m_iSource) && (m_ShortestPathTree[nd] != 0))
+  // {
+  //   nd = m_ShortestPathTree[nd]->From();
+
+  //   path.push_front(nd);
+  // }
+
+
+  while((nd != m_iSource) && (m_ShortestPathTree[nd] != 0)) {
+    nd = m_ShortestPathTree[nd]->From();
+    // 这里从头插进去
+    // by push_front
     path.push_front(nd);
   }
 
   return path;
-} 
+}
 
 
 //-------------------------- GetPathAsPathEdges -------------------------------
@@ -252,22 +276,21 @@ Graph_SearchAStar_TS<graph_type, heuristic>::GetPathToTarget()const
 //  returns the path as a list of PathEdges
 //-----------------------------------------------------------------------------
 template <class graph_type, class heuristic>
-std::list<PathEdge> 
-Graph_SearchAStar_TS<graph_type, heuristic>::GetPathAsPathEdges()const
-{
+std::list<PathEdge>
+Graph_SearchAStar_TS<graph_type, heuristic>::GetPathAsPathEdges()const {
   std::list<PathEdge> path;
 
   //just return an empty path if no target or no path found
-  if (m_iTarget < 0)  return path;    
+  if(m_iTarget < 0)  return path;
 
   int nd = m_iTarget;
-    
-  while ((nd != m_iSource) && (m_ShortestPathTree[nd] != 0))
-  {
+
+  while((nd != m_iSource) && (m_ShortestPathTree[nd] != 0)) {
+    // 利用信息来构造PathEdge, 注意还要注入Behavior以及DoorID
     path.push_front(PathEdge(m_Graph.GetNode(m_ShortestPathTree[nd]->From()).Pos(),
-                             m_Graph.GetNode(m_ShortestPathTree[nd]->To()).Pos(),
-                             m_ShortestPathTree[nd]->Flags(),
-                             m_ShortestPathTree[nd]->IDofIntersectingEntity()));
+      m_Graph.GetNode(m_ShortestPathTree[nd]->To()).Pos(),
+      m_ShortestPathTree[nd]->Flags(),
+      m_ShortestPathTree[nd]->IDofIntersectingEntity()));
 
     nd = m_ShortestPathTree[nd]->From();
   }
@@ -281,8 +304,7 @@ Graph_SearchAStar_TS<graph_type, heuristic>::GetPathAsPathEdges()const
 //  update-steps
 //-----------------------------------------------------------------------------
 template <class graph_type, class termination_condition>
-class Graph_SearchDijkstras_TS : public Graph_SearchTimeSliced<typename graph_type::EdgeType>
-{
+class Graph_SearchDijkstras_TS: public Graph_SearchTimeSliced<typename graph_type::EdgeType> {
 private:
 
   //create typedefs for the node and edge types used by the graph
@@ -291,10 +313,10 @@ private:
 
 private:
 
-  const graph_type&                   m_Graph;
+  const graph_type& m_Graph;
 
   //indexed into my node. Contains the accumulative cost to that node
-  std::vector<double>             m_CostToThisNode; 
+  std::vector<double>             m_CostToThisNode;
 
   std::vector<const Edge*>  m_ShortestPathTree;
   std::vector<const Edge*>  m_SearchFrontier;
@@ -304,37 +326,38 @@ private:
 
   //create an indexed priority queue of nodes. The nodes with the
   //lowest overall F cost (G+H) are positioned at the front.
-  IndexedPriorityQLow<double>*     m_pPQ;
+  IndexedPriorityQLow<double>* m_pPQ;
 
- 
+
 
 public:
 
-  Graph_SearchDijkstras_TS(const graph_type&  G,
+  Graph_SearchDijkstras_TS(const graph_type& G,
                           int                   source,
                           int                   target):Graph_SearchTimeSliced<Edge>(Dijkstra),
-  
-                                              m_Graph(G),
-                                              m_ShortestPathTree(G.NumNodes()),                              
-                                              m_SearchFrontier(G.NumNodes()),
-                                              m_CostToThisNode(G.NumNodes(), 0.0),
-                                              m_iSource(source),
-                                              m_iTarget(target)
-  { 
-     //create the PQ         ,
-     m_pPQ =new IndexedPriorityQLow<double>(m_CostToThisNode, m_Graph.NumNodes());
+
+    m_Graph(G),
+    m_ShortestPathTree(G.NumNodes()),
+    m_SearchFrontier(G.NumNodes()),
+    m_CostToThisNode(G.NumNodes(), 0.0),
+    m_iSource(source),
+    m_iTarget(target) {
+    //create the PQ         ,
+    m_pPQ = new IndexedPriorityQLow<double>(m_CostToThisNode, m_Graph.NumNodes());
 
     //put the source node on the queue
+    // m_pPQ->insert(m_iSource);
     m_pPQ->insert(m_iSource);
+
   }
 
   //let the search class take care of tidying up memory (the wary amongst
   //you may prefer to use std::auto_ptr or similar to replace the pointer
   //to the termination condition)
-   ~Graph_SearchDijkstras_TS()
-   {
-     delete m_pPQ;
-   }
+  ~Graph_SearchDijkstras_TS() {
+    // 清除IndexedPriorityQLow这部分的内存
+    delete m_pPQ;
+  }
 
 
   //When called, this method pops the next node off the PQ and examines all
@@ -343,7 +366,7 @@ public:
   int              CycleOnce();
 
   //returns the vector of edges that the algorithm has examined
-  std::vector<const Edge*> GetSPT()const{return m_ShortestPathTree;}
+  std::vector<const Edge*> GetSPT()const { return m_ShortestPathTree; }
 
   //returns a vector of node indexes that comprise the shortest path
   //from the source to the target
@@ -353,28 +376,27 @@ public:
   std::list<PathEdge>    GetPathAsPathEdges()const;
 
   //returns the total cost to the target
-  double            GetCostToTarget()const{return m_CostToThisNode[m_iTarget];}
+  double            GetCostToTarget()const { return m_CostToThisNode[m_iTarget]; }
 };
 
 //-----------------------------------------------------------------------------
 template <class graph_type, class termination_condition>
-int Graph_SearchDijkstras_TS<graph_type, termination_condition>::CycleOnce()
-{
+int Graph_SearchDijkstras_TS<graph_type, termination_condition>::CycleOnce() {
   //if the PQ is empty the target has not been found
-  if (m_pPQ->empty())
-  {
+  if(m_pPQ->empty()) {
     return target_not_found;
   }
 
   //get lowest cost node from the queue
   int NextClosestNode = m_pPQ->Pop();
 
-  //move this node from the frontier to the spanning tree
+  // move this node from the frontier to the spanning tree
+  // 准确来说, 这里move的是一条edge
   m_ShortestPathTree[NextClosestNode] = m_SearchFrontier[NextClosestNode];
 
-  //if the target has been found exit
-  if (termination_condition::isSatisfied(m_Graph, m_iTarget, NextClosestNode))
-  {
+  // if the target has been found exit
+  // 终结条件直接用一个类来拓展, 方便后续灵活编辑终结条件
+  if(termination_condition::isSatisfied(m_Graph, m_iTarget, NextClosestNode)) {
     //make a note of the node index that has satisfied the condition. This
     //is so we can work backwards from the index to extract the path from
     //the shortest path tree.
@@ -385,10 +407,9 @@ int Graph_SearchDijkstras_TS<graph_type, termination_condition>::CycleOnce()
 
   //now to test all the edges attached to this node
   graph_type::ConstEdgeIterator ConstEdgeItr(m_Graph, NextClosestNode);
-  for (const Edge* pE=ConstEdgeItr.begin();
+  for(const Edge* pE = ConstEdgeItr.begin();
       !ConstEdgeItr.end();
-       pE=ConstEdgeItr.next())
-  {
+       pE = ConstEdgeItr.next()) {
     //the total cost to the node this edge points to is the cost to the
     //current node plus the cost of the edge connecting them.
     double NewCost = m_CostToThisNode[NextClosestNode] + pE->Cost();
@@ -396,8 +417,7 @@ int Graph_SearchDijkstras_TS<graph_type, termination_condition>::CycleOnce()
     //if this edge has never been on the frontier make a note of the cost
     //to get to the node it points to, then add the edge to the frontier
     //and the destination node to the PQ.
-    if (m_SearchFrontier[pE->To()] == 0)
-    {
+    if(m_SearchFrontier[pE->To()] == 0) {
       m_CostToThisNode[pE->To()] = NewCost;
 
       m_pPQ->insert(pE->To());
@@ -410,9 +430,8 @@ int Graph_SearchDijkstras_TS<graph_type, termination_condition>::CycleOnce()
     //this path is cheaper, we assign the new cost to the destination
     //node, update its entry in the PQ to reflect the change and add the
     //edge to the frontier
-    else if ( (NewCost < m_CostToThisNode[pE->To()]) &&
-              (m_ShortestPathTree[pE->To()] == 0) )
-    {
+    else if((NewCost < m_CostToThisNode[pE->To()]) &&
+              (m_ShortestPathTree[pE->To()] == 0)) {
       m_CostToThisNode[pE->To()] = NewCost;
 
       //because the cost is less than it was previously, the PQ must be
@@ -422,58 +441,56 @@ int Graph_SearchDijkstras_TS<graph_type, termination_condition>::CycleOnce()
       m_SearchFrontier[pE->To()] = pE;
     }
   }
-  
-  //there are still nodes to explore
+
+  // 注意到这里没有使用While循环, 说明是分为好几个时间片time slice一起完成的
+  // there are still nodes to explore
   return search_incomplete;
 }
 
 //-----------------------------------------------------------------------------
 template <class graph_type, class termination_condition>
-std::list<int> 
-Graph_SearchDijkstras_TS<graph_type, termination_condition>::GetPathToTarget()const
-{
+std::list<int>
+Graph_SearchDijkstras_TS<graph_type, termination_condition>::GetPathToTarget()const {
   std::list<int> path;
 
   //just return an empty path if no target or no path found
-  if (m_iTarget < 0)  return path;    
+  if(m_iTarget < 0)  return path;
 
   int nd = m_iTarget;
 
   path.push_back(nd);
-    
-  while ((nd != m_iSource) && (m_ShortestPathTree[nd] != 0))
-  {
+
+  while((nd != m_iSource) && (m_ShortestPathTree[nd] != 0)) {
     nd = m_ShortestPathTree[nd]->From();
 
     path.push_front(nd);
   }
 
   return path;
-} 
+}
 
 
 //-------------------------- GetPathAsPathEdges -------------------------------
 //
 //  returns the path as a list of PathEdges
+//  使用PathEdges的形式来返回路径, 方便后续相关的数据处理
 //-----------------------------------------------------------------------------
 template <class graph_type, class termination_condition>
-std::list<PathEdge> 
-Graph_SearchDijkstras_TS<graph_type, termination_condition>::GetPathAsPathEdges()const
-{
+std::list<PathEdge>
+Graph_SearchDijkstras_TS<graph_type, termination_condition>::GetPathAsPathEdges()const {
   std::list<PathEdge> path;
 
   //just return an empty path if no target or no path found
-  if (m_iTarget < 0)  return path;    
+  if(m_iTarget < 0)  return path;
 
   int nd = m_iTarget;
-    
-  while ((nd != m_iSource) && (m_ShortestPathTree[nd] != 0))
-  {
+
+  while((nd != m_iSource) && (m_ShortestPathTree[nd] != 0)) {
     path.push_front(PathEdge(m_Graph.GetNode(m_ShortestPathTree[nd]->From()).Pos(),
-                             m_Graph.GetNode(m_ShortestPathTree[nd]->To()).Pos(),
-                             m_ShortestPathTree[nd]->Flags(),
-                             m_ShortestPathTree[nd]->IDofIntersectingEntity()));
-    
+      m_Graph.GetNode(m_ShortestPathTree[nd]->To()).Pos(),
+      m_ShortestPathTree[nd]->Flags(),
+      m_ShortestPathTree[nd]->IDofIntersectingEntity()));
+
     nd = m_ShortestPathTree[nd]->From();
   }
 

@@ -61,7 +61,7 @@ void MessageDispatcher::DispatchMsg(double       delay,
     return;
   }
   
-  //create the telegram
+  // create the telegram
   Telegram telegram(0, sender, receiver, msg, AdditionalInfo);
   
   //if there is no delay, route telegram immediately                       

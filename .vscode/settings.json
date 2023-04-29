@@ -21,6 +21,8 @@
         "memory": "cpp",
         "xmemory": "cpp",
         "queue": "cpp",
-        "xlocnum": "cpp"
+        "xlocnum": "cpp",
+        "type_traits": "cpp",
+        "xstddef": "cpp"
     }
 }

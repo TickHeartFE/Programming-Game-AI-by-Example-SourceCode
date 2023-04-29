@@ -103,6 +103,7 @@ void Raven_Game::Clear()
 //-------------------------------- Update -------------------------------------
 //
 //  calls the update function of each entity
+//  这里是整个游戏的main update, 主要的update就在这里, main logical here to update
 //-----------------------------------------------------------------------------
 void Raven_Game::Update()
 { 
@@ -128,7 +129,7 @@ void Raven_Game::Update()
   std::list<Raven_Projectile*>::iterator curW = m_Projectiles.begin();
   while (curW != m_Projectiles.end())
   {
-    //test for any dead projectiles and remove them if necessary
+    // test for any dead projectiles and remove them if necessary
     if (!(*curW)->isDead())
     {
       (*curW)->Update();
@@ -170,6 +171,7 @@ void Raven_Game::Update()
     //if this bot is alive update it.
     else if ( (*curBot)->isAlive())
     {
+      // 这里对每个Raven_Bot进行update
       (*curBot)->Update();
     }  
   } 
@@ -554,7 +556,8 @@ bool Raven_Game::isPathObstructed(Vector2D A,
 
   while (Vec2DDistanceSq(curPos, B) > BoundingRadius*BoundingRadius)
   {   
-    //advance curPos one step
+    // advance curPos one step
+    // 向前进一步
     curPos += ToB * 0.5 * BoundingRadius;
     
     //test all walls against the new position
